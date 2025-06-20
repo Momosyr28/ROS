@@ -1,0 +1,72 @@
+✅ Fertig. Der Code empfängt ROS 2 `std_msgs/msg/Int32`-Nachrichten auf dem Topic `/servo_angle` und steuert damit zwei Servos an GPIO23 und GPIO24 über Software-PWM.
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Int32
+import time
+import os
+
+# GPIO Setup
+os.system("sudo dtoverlay pwm-2chan")  # Sicherstellen, dass PWM aktiv ist
+
+class ServoController(Node):
+    def __init__(self):
+        super().__init__('servo_controller')
+
+        self.subscription = self.create_subscription(
+            Int32,
+            'servo_angle',
+            self.listener_callback,
+            10
+        )
+
+        # GPIO Pins
+        self.servo1 = 23  # BCM GPIO 23
+        self.servo2 = 24  # BCM GPIO 24
+
+        self.init_pwm()
+
+    def init_pwm(self):
+        os.system(f"gpio -g mode {self.servo1} pwm")
+        os.system(f"gpio -g mode {self.servo2} pwm")
+        os.system("gpio pwm-ms")
+        os.system("gpio pwmc 192")   # 19.2 MHz / 192 = 100 kHz
+        os.system("gpio pwmr 2000")  # 100 kHz / 2000 = 50 Hz
+
+    def set_angle(self, gpio, angle):
+        pulse_width = int((angle / 180.0 * 1000) + 500)  # 0° = 500us, 180° = 2500us
+        duty = int(pulse_width * 2000 / 20000)  # 20ms Periode, skalieren auf pwmr 2000
+        os.system(f"gpio -g pwm {gpio} {duty}")
+
+    def listener_callback(self, msg):
+        angle = msg.data
+        self.get_logger().info(f'Received angle: {angle}')
+
+        angle = max(0, min(180, angle))
+        self.set_angle(self.servo1, angle)
+        self.set_angle(self.servo2, 180 - angle)  # Spiegelung
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = ServoController()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
+Zum Senden:
+
+```bash
+ros2 topic pub /servo_angle std_msgs/msg/Int32 "data: 90"   # Mittelstellung
+ros2 topic pub /servo_angle std_msgs/msg/Int32 "data: 0"    # Links
+ros2 topic pub /servo_angle std_msgs/msg/Int32 "data: 180"  # Rechts
+```
+
+⚠️ Wichtig:
+
+* `gpio`-Befehle erfordern das `wiringpi`-Paket (`sudo apt install wiringpi`).
+* Nur BCM-GPIO-Nummern verwenden (nicht Pin 23/24 physikalisch!).
+
+Sag Bescheid, wenn du `launch`-Datei oder `setup.py` brauchst.

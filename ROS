@@ -1,0 +1,107 @@
+Perfekt! Dann machen wir deinen **Raspberry Pi 5** bereit für **Ubuntu 22.04 LTS + ROS 2 Humble** – **sauber, stabil und sofort einsatzbereit**.
+
+---
+
+## ✅ Schritt-für-Schritt: Ubuntu 22.04 LTS + ROS 2 Humble auf Raspberry Pi 5 installieren
+
+---
+
+### 🔧 1. **Ubuntu für Raspberry Pi 5 herunterladen**
+
+> 🖥 Link: [https://ubuntu.com/download/raspberry-pi](https://ubuntu.com/download/raspberry-pi)
+
+* Wähle:
+  ✅ **Ubuntu Server 22.04 LTS (64-bit)**
+  für **Raspberry Pi 5 / 4 (arm64)**
+
+* Download z. B. als `.img.xz` Datei
+
+---
+
+### 🧰 2. **Image auf SD-Karte/SSD schreiben**
+
+Nutze z. B.:
+
+* **[Raspberry Pi Imager](https://www.raspberrypi.com/software/)**
+
+  > OS: Wähle “Use custom” → die `.img.xz` Datei
+  > Storage: deine SD-Karte oder SSD
+
+ODER
+
+* **balenaEtcher** (alternativ)
+
+---
+
+### ⚙️ 3. **Erste Einrichtung nach dem Start**
+
+1. Pi mit Ubuntu starten
+2. Dich einloggen (Standard-Login, z. B. `ubuntu`/`ubuntu`, beim ersten Login wirst du zum Passwortwechsel aufgefordert)
+3. System updaten:
+
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+---
+
+### 🧠 4. **ROS 2 Humble installieren (offiziell unterstützt!)**
+
+```bash
+sudo apt install software-properties-common -y
+sudo add-apt-repository universe
+sudo apt update && sudo apt install curl gnupg lsb-release -y
+```
+
+**ROS-Keys hinzufügen:**
+
+```bash
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+```
+
+**ROS 2 Quellen einfügen:**
+
+```bash
+echo "deb [arch=arm64 signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+
+**ROS installieren:**
+
+```bash
+sudo apt update
+sudo apt install ros-humble-desktop -y
+```
+
+> Alternativ kleiner:
+> `sudo apt install ros-humble-ros-base` (ohne GUI)
+
+---
+
+### 📦 5. **ROS Umgebung einrichten**
+
+```bash
+echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### ✅ 6. **Testen**
+
+```bash
+ros2 run demo_nodes_cpp talker
+# In anderem Terminal:
+ros2 run demo_nodes_cpp listener
+```
+
+Wenn du „Hello world“ siehst → ROS läuft ✅
+
+---
+
+Wenn du willst, richte ich dir direkt danach dein Python-Skript, deine Servo-Steuerung oder PPM/ROS weiter ein. Sag einfach:
+
+> „Jetzt Servos an GPIO14 und 15 über ROS mit rclpy“
+> oder
+> „Jetzt micro-ROS Agent einrichten“
+
+Ich mach’s dir fertig. Bereit?
